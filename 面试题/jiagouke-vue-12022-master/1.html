@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="f">
+    <div class="z"></div>
+  </div>
+  
+  <div id="div"></div>
+</body>
+<script>
+  var elem = document.querySelector('#div');
+ 
+  var event = document.createEvent('Event');
+
+  // 定义事件名称myEvent
+  event.initEvent('myEvent', true, true);
+
+  // 监听myEvent
+  elem.addEventListener('myEvent', function (e) {
+      console.log(e);
+  }, false);
+
+  // 使用目标对象去派发事件，可以是元素节点/事件对象
+  elem.dispatchEvent(event);
+</script>
+<style>
+  .f {
+    width: 100px;
+    height: 80px;
+  }
+  .z {
+    width: 80%;
+    padding-top: 40%;
+    background-color: black;
+  }
+</style>
+</html>
