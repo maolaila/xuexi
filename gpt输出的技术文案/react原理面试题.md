@@ -500,3 +500,55 @@ React-Router 的 `keepalive` 属性并不是官方提供的，它是通过第三
 5. 在切换路由时，如果目标路由需要缓存，则从 `cache` 对象中获取缓存的组件实例并将其重新渲染到页面上。否则直接渲染新的组件实例。
 
 总的来说，`keep-alive` 组件的原理与 React-Router 中的 `keepalive` 属性类似，都是通过缓存容器组件和缓存池来实现路由组件的状态和 DOM 结构的复用，从而提高路由切换的性能。不同的是，在 Vue-Router 中，`keep-alive` 组件是内置的，可以直接使用，而在 React-Router 中，需要通过第三方库来实现。
+
+
+
+##### fibber调度任务时的时间分配
+
+fibber调度任务时的时间分配是通过任务开始前的时间戳，和任务当前时间戳的时间差，同预估时间进行比对，这是为了兼容性，而没有用requestIdleCallBack;
+
+##### requestIdleCallback
+
+`requestIdleCallback` 是一个用于在主线程空闲时执行回调函数的 API。它允许开发者安排任务在浏览器的主线程空闲时执行，以避免阻塞关键的渲染和用户交互操作。
+
+`requestIdleCallback` 的基本语法如下：
+
+```javascript
+window.requestIdleCallback(callback[, options]);
+```
+
+其中，`callback` 是要执行的回调函数，`options` 是一个可选的配置对象，可以指定超时时间和回调执行优先级等。
+
+在使用 `requestIdleCallback` 进行数据分片处理时，你可以将每个数据分片的处理逻辑放在回调函数中，以便在主线程空闲时执行。以下是一个示例：
+
+```javascript
+// 将大量数据分割成数据分片
+const dataChunks = [...];
+
+// 定义处理函数
+function processDataChunk(chunk) {
+  // 执行数据分片的处理逻辑
+  // ...
+}
+
+// 使用 requestIdleCallback 调度数据分片处理
+let currentIndex = 0;
+
+function scheduleDataProcessing(deadline) {
+  while (currentIndex < dataChunks.length && deadline.timeRemaining() > 0) {
+    const currentChunk = dataChunks[currentIndex];
+    processDataChunk(currentChunk);
+    currentIndex++;
+  }
+
+  if (currentIndex < dataChunks.length) {
+    window.requestIdleCallback(scheduleDataProcessing);
+  }
+}
+
+window.requestIdleCallback(scheduleDataProcessing);
+```
+
+在上述示例中，我们使用 `window.requestIdleCallback` 调度数据分片的处理。在 `scheduleDataProcessing` 函数中，我们在主线程空闲时不断地处理数据分片，直到遍历完所有分片或超过了空闲时间限制。如果还有未处理的数据分片，我们再次使用 `window.requestIdleCallback` 调度下一轮的处理。
+
+通过利用 `requestIdleCallback`，你可以在主线程空闲时分批处理数据分片，避免阻塞关键任务，并提高用户体验。请注意，`requestIdleCallback` 目前还是一个实验性的 API，支持程度可能会因浏览器而异。因此，应该使用降级策略或 polyfill 来确保在不支持的浏览器上有备选方案。
